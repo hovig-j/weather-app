@@ -12,9 +12,11 @@ import kotlinx.coroutines.flow.update
 
 data class HomeUiState(
     val city: String = "",
+    val latitude: Double = 0.0,
+    val longitude: Double = 0.0
 )
 
-class HomeViewModel(application: Application): AndroidViewModel(application) {
+class HomeViewModel(application: Application) : AndroidViewModel(application) {
 
     private val sharedPreferences = application.getSharedPreferences("weather_app_shared_pref", Context.MODE_PRIVATE)
     private var lastSavedCity: String = sharedPreferences.getString("last_city", "")!!
@@ -32,4 +34,14 @@ class HomeViewModel(application: Application): AndroidViewModel(application) {
             putString("last_city", city)
         }
     }
+
+    fun setCoordinates(latitude: Double, longitude: Double) {
+        _uiState.update { currentState ->
+            currentState.copy(
+                latitude = latitude,
+                longitude = longitude
+            )
+        }
+    }
+
 }
