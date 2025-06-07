@@ -4,6 +4,7 @@ import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
 import androidx.activity.enableEdgeToEdge
+import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
 import androidx.compose.foundation.layout.PaddingValues
 import androidx.compose.foundation.layout.Spacer
@@ -26,6 +27,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TopAppBar
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.collectAsState
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -39,6 +41,8 @@ import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
+import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
+import androidx.lifecycle.viewmodel.compose.viewModel
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 
 class MainActivity : ComponentActivity() {
@@ -49,6 +53,10 @@ class MainActivity : ComponentActivity() {
         enableEdgeToEdge()
         setContent {
             WeatherAppTheme {
+                val homeViewModel = viewModel {
+                    val application = checkNotNull(get(AndroidViewModelFactory.APPLICATION_KEY))
+                    HomeViewModel(application)
+                }
                 var showCityDialog by remember { mutableStateOf(false) }
 
                 Scaffold(
@@ -90,6 +98,7 @@ class MainActivity : ComponentActivity() {
                                         keyboardOptions = KeyboardOptions(imeAction = ImeAction.Search),
                                         keyboardActions = KeyboardActions(
                                             onSearch = {
+                                                homeViewModel.setCity(cityName.text)
                                                 showCityDialog = false
                                             }
                                         ),
@@ -98,6 +107,7 @@ class MainActivity : ComponentActivity() {
                                     Button(
                                         modifier = Modifier.align(Alignment.End),
                                         onClick = {
+                                            homeViewModel.setCity(cityName.text)
                                             showCityDialog = false
                                         }) {
                                         Text("OK")
@@ -113,12 +123,18 @@ class MainActivity : ComponentActivity() {
 }
 
 @Composable
-fun HomeScreen(innerPadding: PaddingValues) {
+fun HomeScreen(
+    innerPadding: PaddingValues,
+    homeViewModel: HomeViewModel = viewModel()
+) {
     Column(
         modifier = Modifier
             .fillMaxSize()
             .padding(innerPadding)
+            .padding(16.dp),
+        verticalArrangement = Arrangement.Top
     ) {
-
+        val uiState by homeViewModel.uiState.collectAsState()
+        Text(uiState.city)
     }
 }
