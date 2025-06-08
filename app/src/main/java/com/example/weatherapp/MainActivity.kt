@@ -56,6 +56,8 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
+import com.example.weatherapp.openweather.OpenWeatherDataSource
+import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
@@ -70,7 +72,8 @@ class MainActivity : ComponentActivity() {
             WeatherAppTheme {
                 val homeViewModel = viewModel {
                     val application = checkNotNull(get(AndroidViewModelFactory.APPLICATION_KEY))
-                    HomeViewModel(application)
+                    val weatherRepository = WeatherRepository(OpenWeatherDataSource())
+                    HomeViewModel(application, weatherRepository)
                 }
                 var showCityDialog by remember { mutableStateOf(false) }
 
