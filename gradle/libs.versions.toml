@@ -12,6 +12,8 @@ viewmodelCompose = "2.9.1"
 playServicesLocation = "21.3.0"
 retrofit = "3.0.0"
 moshi = "1.15.2"
+coil-compose = "3.2.0"
+coil-network-okhttp = "3.2.0"
 
 [libraries]
 androidx-core-ktx = { group = "androidx.core", name = "core-ktx", version.ref = "coreKtx" }
@@ -32,6 +34,8 @@ androidx-material3 = { group = "androidx.compose.material3", name = "material3" 
 play-services-location = { group = "com.google.android.gms", name = "play-services-location", version.ref = "playServicesLocation" }
 retrofit = { group = "com.squareup.retrofit2", name = "retrofit", version.ref = "retrofit" }
 moshi = { group = "com.squareup.moshi", name = "moshi-kotlin", version.ref = "moshi" }
+coil-compose = { group = "io.coil-kt.coil3", name = "coil-compose", version.ref = "coil-compose" }
+coil-network-okhttp = { group = "io.coil-kt.coil3", name = "coil-network-okhttp", version.ref = "coil-network-okhttp" }
 
 [plugins]
 android-application = { id = "com.android.application", version.ref = "agp" }

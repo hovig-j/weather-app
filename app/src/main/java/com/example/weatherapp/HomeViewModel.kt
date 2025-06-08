@@ -27,6 +27,8 @@ enum class LoadingState {
     ERROR
 }
 
+private const val openWeatherIconApi = "https://openweathermap.org/img/wn/"
+
 class HomeViewModel(
     application: Application,
     private val weatherRepository: WeatherRepository
@@ -53,8 +55,8 @@ class HomeViewModel(
     fun setCity(city: String) {
         setLoadingState()
         viewModelScope.launch {
-            val currentWeather = weatherRepository.getCurrentWeather(city)
-            val forecast = weatherRepository.getForecast(city)
+            val currentWeather = weatherRepository.getCurrentWeather(city)?.fixIconUrl()
+            val forecast = weatherRepository.getForecast(city)?.map { it.fixIconUrl() }
             if (currentWeather != null || forecast != null) {
                 sharedPreferences.edit {
                     remove("last_coordinates")
@@ -68,8 +70,8 @@ class HomeViewModel(
     fun setCoordinates(latitude: Double, longitude: Double) {
         setLoadingState()
         viewModelScope.launch {
-            val currentWeather = weatherRepository.getCurrentWeather(latitude, longitude)
-            val forecast = weatherRepository.getForecast(latitude, longitude)
+            val currentWeather = weatherRepository.getCurrentWeather(latitude, longitude)?.fixIconUrl()
+            val forecast = weatherRepository.getForecast(latitude, longitude)?.map { it.fixIconUrl() }
             if (currentWeather != null || forecast != null) {
                 sharedPreferences.edit {
                     remove("last_city")
@@ -114,3 +116,11 @@ class HomeViewModel(
     }
 
 }
+
+private fun Weather.fixIconUrl() = this.copy(
+    summary = listOf(
+        summary.first().copy(
+            icon = "$openWeatherIconApi${summary.first().icon}.png"
+        )
+    )
+)

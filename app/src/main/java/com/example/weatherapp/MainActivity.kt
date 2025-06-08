@@ -25,6 +25,7 @@ import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.width
 import androidx.compose.foundation.lazy.LazyColumn
 import androidx.compose.foundation.lazy.items
@@ -68,6 +69,7 @@ import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
+import coil3.compose.AsyncImage
 import com.example.weatherapp.data.Weather
 import com.example.weatherapp.data.WeatherRepository
 import com.example.weatherapp.openweather.OpenWeatherDataSource
@@ -282,6 +284,9 @@ fun CurrentWeather(weather: Weather?) {
     val currentTemperature = remember(weather.temperatures.temperature) {
         "${weather.temperatures.temperature.toInt()}°"
     }
+    val icon = remember(weather.summary.first()) {
+        weather.summary.first().icon
+    }
     val description = remember(weather.summary.first()) {
         "${weather.summary.first().main} (${weather.summary.first().description})"
     }
@@ -323,7 +328,18 @@ fun CurrentWeather(weather: Weather?) {
                 modifier = Modifier.fillMaxHeight(),
                 verticalArrangement = Arrangement.SpaceBetween,
             ) {
-                Text(text = description, style = MaterialTheme.typography.titleMedium)
+                Row(
+                    modifier = Modifier.fillMaxWidth(),
+                    horizontalArrangement = Arrangement.Start,
+                    verticalAlignment = Alignment.CenterVertically
+                ) {
+                    AsyncImage(
+                        model = icon,
+                        contentDescription = description,
+                        modifier = Modifier.size(30.dp)
+                    )
+                    Text(text = description, style = MaterialTheme.typography.titleMedium)
+                }
                 Text(text = temperatures, style = MaterialTheme.typography.titleSmall)
                 Text(text = "$wind | $cloud | $rain", style = MaterialTheme.typography.bodyMedium)
                 Text(text = dateTime, style = MaterialTheme.typography.bodySmall)
@@ -347,11 +363,14 @@ fun Forecast(forecast: List<Weather>) {
                     .withZone(ZoneId.systemDefault())
                     .format(Instant.ofEpochSecond(weather.dt))
             }
+            val icon = remember(weather.summary.first()) {
+                weather.summary.first().icon
+            }
             val description = remember(weather.summary.first()) {
                 "${weather.summary.first().main} (${weather.summary.first().description})"
             }
             val temperature = remember(weather.temperatures.temperature) {
-                "${weather.temperatures.temperature.toInt()}°"
+                "${weather.temperatures.temperature.toInt()}° | Feels like: ${weather.temperatures.feelsLike.toInt()}°"
             }
             val wind = remember(weather.wind) {
                 "Wind: ${weather.wind.speed}m/s"
@@ -373,7 +392,18 @@ fun Forecast(forecast: List<Weather>) {
                     modifier = Modifier.padding(8.dp)
                 ) {
                     Text(text = dateTime, style = MaterialTheme.typography.titleLarge)
-                    Text(text = description, style = MaterialTheme.typography.titleMedium)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.Start,
+                        verticalAlignment = Alignment.CenterVertically,
+                    ) {
+                        AsyncImage(
+                            model = icon,
+                            contentDescription = description,
+                            modifier = Modifier.size(30.dp)
+                        )
+                        Text(text = description, style = MaterialTheme.typography.titleMedium)
+                    }
                     Text(text = temperature, style = MaterialTheme.typography.titleSmall)
                     Text(text = "$wind | $cloud | $rain", style = MaterialTheme.typography.bodyMedium)
                 }
