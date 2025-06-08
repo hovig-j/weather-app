@@ -36,6 +36,7 @@ import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
 import androidx.compose.material3.Card
 import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.CircularProgressIndicator
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -229,11 +230,42 @@ fun HomeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        Text(text = "Location: ${uiState.location}", style = MaterialTheme.typography.titleMedium)
-        Spacer(modifier = Modifier.height(8.dp))
-        CurrentWeather(uiState.currentWeather)
-        Spacer(modifier = Modifier.height(24.dp))
-        Forecast(uiState.forecast)
+        when (uiState.loadingState) {
+            LoadingState.INITIAL -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "Search a city or use your current location.")
+                }
+            }
+
+            LoadingState.LOADING -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    CircularProgressIndicator()
+                }
+            }
+
+            LoadingState.LOADED -> {
+                Text(text = "Location: ${uiState.location}", style = MaterialTheme.typography.titleMedium)
+                Spacer(modifier = Modifier.height(8.dp))
+                CurrentWeather(uiState.currentWeather)
+                Spacer(modifier = Modifier.height(24.dp))
+                Forecast(uiState.forecast)
+            }
+
+            LoadingState.ERROR -> {
+                Box(
+                    modifier = Modifier.fillMaxSize(),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(text = "An error occurred while getting the weather.\nPlease try again later.")
+                }
+            }
+        }
     }
 }
 

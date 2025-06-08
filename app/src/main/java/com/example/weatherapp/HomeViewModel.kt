@@ -14,10 +14,18 @@ import kotlinx.coroutines.flow.update
 import kotlinx.coroutines.launch
 
 data class HomeUiState(
+    val loadingState: LoadingState = LoadingState.INITIAL,
     val location: String = "",
     val currentWeather: Weather? = null,
     val forecast: List<Weather> = listOf()
 )
+
+enum class LoadingState {
+    INITIAL,
+    LOADING,
+    LOADED,
+    ERROR
+}
 
 class HomeViewModel(
     application: Application,
@@ -43,6 +51,7 @@ class HomeViewModel(
     }
 
     fun setCity(city: String) {
+        setLoadingState()
         viewModelScope.launch {
             val currentWeather = weatherRepository.getCurrentWeather(city)
             val forecast = weatherRepository.getForecast(city)
@@ -57,6 +66,7 @@ class HomeViewModel(
     }
 
     fun setCoordinates(latitude: Double, longitude: Double) {
+        setLoadingState()
         viewModelScope.launch {
             val currentWeather = weatherRepository.getCurrentWeather(latitude, longitude)
             val forecast = weatherRepository.getForecast(latitude, longitude)
@@ -70,10 +80,22 @@ class HomeViewModel(
         }
     }
 
+    private fun setLoadingState() {
+        _uiState.update {
+            HomeUiState(
+                loadingState = LoadingState.LOADING,
+                location = "",
+                currentWeather = null,
+                forecast = listOf()
+            )
+        }
+    }
+
     private fun updateUiState(location: String, currentWeather: Weather?, forecast: List<Weather>?) {
         if (currentWeather == null && forecast == null) {
             _uiState.update {
                 HomeUiState(
+                    loadingState = LoadingState.ERROR,
                     location = "",
                     currentWeather = null,
                     forecast = listOf()
@@ -82,6 +104,7 @@ class HomeViewModel(
         } else {
             _uiState.update {
                 HomeUiState(
+                    loadingState = LoadingState.LOADED,
                     location = location,
                     currentWeather = currentWeather,
                     forecast = forecast ?: listOf()
