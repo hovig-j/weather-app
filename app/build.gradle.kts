@@ -37,7 +37,7 @@ android {
 }
 
 dependencies {
-
+    implementation(project(":open-weather"))
     implementation(libs.androidx.core.ktx)
     implementation(libs.androidx.lifecycle.runtime.ktx)
     implementation(libs.androidx.lifecycle.viewmodel.compose)
