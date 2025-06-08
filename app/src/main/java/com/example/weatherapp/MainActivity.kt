@@ -14,19 +14,28 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.annotation.RequiresPermission
 import androidx.compose.foundation.layout.Arrangement
+import androidx.compose.foundation.layout.Box
 import androidx.compose.foundation.layout.Column
+import androidx.compose.foundation.layout.IntrinsicSize
 import androidx.compose.foundation.layout.PaddingValues
+import androidx.compose.foundation.layout.Row
 import androidx.compose.foundation.layout.Spacer
+import androidx.compose.foundation.layout.fillMaxHeight
 import androidx.compose.foundation.layout.fillMaxSize
 import androidx.compose.foundation.layout.fillMaxWidth
 import androidx.compose.foundation.layout.height
 import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.width
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.lazy.items
 import androidx.compose.foundation.text.KeyboardActions
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Place
 import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.Button
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.ExperimentalMaterial3Api
 import androidx.compose.material3.FloatingActionButton
 import androidx.compose.material3.Icon
@@ -49,18 +58,24 @@ import androidx.compose.ui.autofill.ContentType
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.semantics.contentType
 import androidx.compose.ui.semantics.semantics
+import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.TextFieldValue
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.window.Dialog
 import androidx.core.content.ContextCompat.checkSelfPermission
 import androidx.lifecycle.ViewModelProvider.AndroidViewModelFactory
 import androidx.lifecycle.viewmodel.compose.viewModel
-import com.example.weatherapp.openweather.OpenWeatherDataSource
+import com.example.weatherapp.data.Weather
 import com.example.weatherapp.data.WeatherRepository
+import com.example.weatherapp.openweather.OpenWeatherDataSource
 import com.example.weatherapp.ui.theme.WeatherAppTheme
 import com.google.android.gms.location.LocationServices
 import com.google.android.gms.location.Priority
+import java.time.Instant
+import java.time.ZoneId
+import java.time.format.DateTimeFormatter
 
 class MainActivity : ComponentActivity() {
 
@@ -205,6 +220,8 @@ fun HomeScreen(
     innerPadding: PaddingValues,
     homeViewModel: HomeViewModel = viewModel()
 ) {
+    val uiState by homeViewModel.uiState.collectAsState()
+
     Column(
         modifier = Modifier
             .fillMaxSize()
@@ -212,7 +229,123 @@ fun HomeScreen(
             .padding(16.dp),
         verticalArrangement = Arrangement.Top
     ) {
-        val uiState by homeViewModel.uiState.collectAsState()
-        Text(uiState.city)
+        Text(text = "Location: ${uiState.location}", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+        CurrentWeather(uiState.currentWeather)
+        Spacer(modifier = Modifier.height(24.dp))
+        Forecast(uiState.forecast)
+    }
+}
+
+@Composable
+fun CurrentWeather(weather: Weather?) {
+    if (weather == null) return
+
+    val dateTime = remember(weather.dt) {
+        DateTimeFormatter
+            .ofPattern("dd-MM-yyyy HH:mm")
+            .withZone(ZoneId.systemDefault())
+            .format(Instant.ofEpochSecond(weather.dt))
+    }
+    val currentTemperature = remember(weather.temperatures.temperature) {
+        "${weather.temperatures.temperature.toInt()}°"
+    }
+    val description = remember(weather.summary.first()) {
+        "${weather.summary.first().main} (${weather.summary.first().description})"
+    }
+    val temperatures = remember(weather.temperatures) {
+        "${weather.temperatures.minTemperature.toInt()}°~${weather.temperatures.maxTemperature.toInt()}° | Feels like: ${weather.temperatures.feelsLike.toInt()}°"
+    }
+    val wind = remember(weather.wind) {
+        "Wind: ${weather.wind.speed}m/s"
+    }
+    val cloud = remember(weather.clouds) {
+        "Cloud: ${weather.clouds.cloudiness}%"
+    }
+    val rain = remember(weather.rain) {
+        "Rain: ${weather.rain?.volumePerHour ?: 0.0}mm"
+    }
+
+    Card(
+        modifier = Modifier.fillMaxWidth(),
+        elevation = CardDefaults.cardElevation(defaultElevation = 8.dp),
+    ) {
+        Row(
+            modifier = Modifier
+                .padding(8.dp)
+                .height(IntrinsicSize.Min)
+        ) {
+            Box(
+                modifier = Modifier.fillMaxHeight(),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    textAlign = TextAlign.Center,
+                    text = currentTemperature,
+                    style = MaterialTheme.typography.headlineLarge,
+                    fontWeight = FontWeight.Bold
+                )
+            }
+            Spacer(modifier = Modifier.width(8.dp))
+            Column(
+                modifier = Modifier.fillMaxHeight(),
+                verticalArrangement = Arrangement.SpaceBetween,
+            ) {
+                Text(text = description, style = MaterialTheme.typography.titleMedium)
+                Text(text = temperatures, style = MaterialTheme.typography.titleSmall)
+                Text(text = "$wind | $cloud | $rain", style = MaterialTheme.typography.bodyMedium)
+                Text(text = dateTime, style = MaterialTheme.typography.bodySmall)
+            }
+        }
+    }
+}
+
+@Composable
+fun Forecast(forecast: List<Weather>) {
+    if (forecast.isNotEmpty()) {
+        Text(text = "Forecast", style = MaterialTheme.typography.titleMedium)
+        Spacer(modifier = Modifier.height(8.dp))
+    }
+
+    LazyColumn {
+        items(forecast) { weather ->
+            val dateTime = remember(weather.dt) {
+                DateTimeFormatter
+                    .ofPattern("EEEE HH:mm")
+                    .withZone(ZoneId.systemDefault())
+                    .format(Instant.ofEpochSecond(weather.dt))
+            }
+            val description = remember(weather.summary.first()) {
+                "${weather.summary.first().main} (${weather.summary.first().description})"
+            }
+            val temperature = remember(weather.temperatures.temperature) {
+                "${weather.temperatures.temperature.toInt()}°"
+            }
+            val wind = remember(weather.wind) {
+                "Wind: ${weather.wind.speed}m/s"
+            }
+            val cloud = remember(weather.clouds) {
+                "Cloud: ${weather.clouds.cloudiness}%"
+            }
+            val rain = remember(weather.rain) {
+                "Rain: ${weather.rain?.volumePer3 ?: 0.0}mm (${weather.precipitation}%)"
+            }
+
+            Card(
+                modifier = Modifier
+                    .padding(bottom = 16.dp)
+                    .fillMaxWidth(),
+                elevation = CardDefaults.cardElevation(4.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(8.dp)
+                ) {
+                    Text(text = dateTime, style = MaterialTheme.typography.titleLarge)
+                    Text(text = description, style = MaterialTheme.typography.titleMedium)
+                    Text(text = temperature, style = MaterialTheme.typography.titleSmall)
+                    Text(text = "$wind | $cloud | $rain", style = MaterialTheme.typography.bodyMedium)
+                }
+            }
+        }
     }
 }
